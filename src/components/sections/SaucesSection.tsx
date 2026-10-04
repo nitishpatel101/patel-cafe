@@ -27,7 +27,7 @@ export function SaucesSection() {
     <section
       id="section-sauces"
       ref={containerRef}
-      className="relative w-full h-[220vh] bg-[#FAFAF8]"
+      className="relative w-full h-[300vh] bg-[#FAFAF8]"
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
         {/* Background Scrubbed Frame Sequence (Video 5 - Pouring Chutney ribbons) */}
@@ -36,6 +36,7 @@ export function SaucesSection() {
             videoId="video-5"
             frameCount={180}
             triggerRef={containerRef}
+            nextSectionId="section-dining"
             onProgress={setScrollProgress}
           />
         </div>

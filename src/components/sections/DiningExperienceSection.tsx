@@ -13,7 +13,7 @@ export function DiningExperienceSection() {
     <section
       id="section-dining"
       ref={containerRef}
-      className="relative w-full h-[220vh] bg-[#FAFAF8]"
+      className="relative w-full h-[300vh] bg-[#FAFAF8]"
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
         {/* Background Scrubbed Frame Sequence (Video 6 - Dining Table Materialization) */}
@@ -22,6 +22,7 @@ export function DiningExperienceSection() {
             videoId="video-6"
             frameCount={180}
             triggerRef={containerRef}
+            nextSectionId="section-cafe-menu"
             onProgress={setScrollProgress}
           />
         </div>

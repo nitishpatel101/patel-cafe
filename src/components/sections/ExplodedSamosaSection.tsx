@@ -80,7 +80,7 @@ export function ExplodedSamosaSection() {
     <section
       id="section-samosa"
       ref={containerRef}
-      className="relative w-full h-[220vh] bg-[#FAFAF8]"
+      className="relative w-full h-[300vh] bg-[#FAFAF8]"
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
         {/* Background Scrubbed Frame Sequence (Video 2 - Exploded Samosa) */}
@@ -89,6 +89,7 @@ export function ExplodedSamosaSection() {
             videoId="video-2"
             frameCount={180}
             triggerRef={containerRef}
+            nextSectionId="section-spices"
             onProgress={setScrollProgress}
           />
         </div>

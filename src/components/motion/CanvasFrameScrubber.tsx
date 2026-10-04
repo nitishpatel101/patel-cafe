@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Play, Pause, ChevronDown } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -10,8 +11,9 @@ if (typeof window !== "undefined") {
 
 interface CanvasFrameScrubberProps {
   videoId: string; // "video-1", "video-2", etc.
-  frameCount?: number; // default 180
+  frameCount?: number; // default 180 frames (10 seconds @ 18fps)
   triggerRef: React.RefObject<HTMLElement | null>;
+  nextSectionId?: string; // Automatically scroll to next section after 10s playback
   onProgress?: (progress: number) => void;
   className?: string;
   priority?: boolean;
@@ -21,14 +23,21 @@ export function CanvasFrameScrubber({
   videoId,
   frameCount = 180,
   triggerRef,
+  nextSectionId,
   onProgress,
   className = "",
   priority = false,
 }: CanvasFrameScrubberProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [currentFrameDisplay, setCurrentFrameDisplay] = useState(1);
+  const [currentTimeSec, setCurrentTimeSec] = useState(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
-  const [loadedPercent, setLoadedPercent] = useState(0);
+  const [isPlayingAuto, setIsPlayingAuto] = useState(false);
+
+  // References for cross-scope control
+  const renderFrameRef = useRef<(idx: number) => void>(() => {});
+  const isPlayingRef = useRef(false);
+  const autoPlayAnimId = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -43,13 +52,11 @@ export function CanvasFrameScrubber({
     const images: (HTMLImageElement | null)[] = new Array(frameCount).fill(null);
     let lastRenderedIndex = -1;
 
-    // Helper to format frame path: /frames/video-1/frame_0001.jpg
     const getFrameUrl = (index: number) => {
       const pad = String(index + 1).padStart(4, "0");
       return `/frames/${videoId}/frame_${pad}.jpg`;
     };
 
-    // Draw image with object-fit: cover onto canvas
     const drawImageProp = (img: HTMLImageElement) => {
       if (!canvas || !ctx) return;
 
@@ -70,7 +77,6 @@ export function CanvasFrameScrubber({
       ctx.drawImage(img, 0, 0, iw, ih, cx, cy, nw, nh);
     };
 
-    // Resize canvas with high-DPI scaling
     const resizeCanvas = () => {
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
@@ -78,7 +84,6 @@ export function CanvasFrameScrubber({
       canvas.width = Math.round(rect.width * dpr);
       canvas.height = Math.round(rect.height * dpr);
 
-      // Redraw current frame if available
       if (lastRenderedIndex >= 0 && images[lastRenderedIndex]?.complete) {
         drawImageProp(images[lastRenderedIndex]!);
       }
@@ -87,7 +92,7 @@ export function CanvasFrameScrubber({
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    // 1. Immediately load frame 0 to paint canvas instantaneously
+    // 1. Immediately paint frame 0
     const firstImg = new Image();
     firstImg.src = getFrameUrl(0);
     images[0] = firstImg;
@@ -96,65 +101,26 @@ export function CanvasFrameScrubber({
       lastRenderedIndex = 0;
     };
 
-    // 2. Preload remaining frames in batches
-    let loadedCount = 1;
-    const loadRemaining = () => {
-      // Priority step loading: load every 4th frame first, then fill rest
-      const order: number[] = [];
-      for (let i = 4; i < frameCount; i += 4) order.push(i);
-      for (let i = 2; i < frameCount; i += 4) order.push(i);
-      for (let i = 1; i < frameCount; i += 2) order.push(i);
-
-      let batchIdx = 0;
-      const loadNextBatch = () => {
-        const batchSize = 10;
-        const end = Math.min(order.length, batchIdx + batchSize);
-
-        for (let i = batchIdx; i < end; i++) {
-          const idx = order[i];
-          if (!images[idx]) {
-            const img = new Image();
-            img.src = getFrameUrl(idx);
-            images[idx] = img;
-            img.onload = () => {
-              loadedCount++;
-              setLoadedPercent(Math.round((loadedCount / frameCount) * 100));
-              // If we are currently holding this frame index, paint it
-              if (lastRenderedIndex === idx) {
-                drawImageProp(img);
-              }
-            };
-          }
-        }
-
-        batchIdx = end;
-        if (batchIdx < order.length) {
-          if (typeof window.requestIdleCallback === "function") {
-            window.requestIdleCallback(loadNextBatch);
-          } else {
-            setTimeout(loadNextBatch, 25);
-          }
+    // 2. Preload ALL 180 frames into memory
+    for (let i = 0; i < frameCount; i++) {
+      if (i === 0) continue;
+      const img = new Image();
+      img.src = getFrameUrl(i);
+      images[i] = img;
+      img.onload = () => {
+        if (lastRenderedIndex === i) {
+          drawImageProp(img);
         }
       };
+    }
 
-      if (priority) {
-        loadNextBatch();
-      } else {
-        setTimeout(loadNextBatch, 150);
-      }
-    };
-
-    loadRemaining();
-
-    // 3. Render requested frame
+    // 3. Render target frame
     const renderFrame = (index: number) => {
-      const targetIdx = Math.min(frameCount - 1, Math.max(0, index));
+      const targetIdx = Math.min(frameCount - 1, Math.max(0, Math.round(index)));
       if (targetIdx === lastRenderedIndex) return;
 
-      // Find closest loaded frame if requested frame is not yet fully loaded
       let imgToDraw = images[targetIdx];
       if (!imgToDraw || !imgToDraw.complete) {
-        // Search backwards
         for (let b = targetIdx - 1; b >= 0; b--) {
           if (images[b]?.complete) {
             imgToDraw = images[b];
@@ -167,26 +133,32 @@ export function CanvasFrameScrubber({
         drawImageProp(imgToDraw);
         lastRenderedIndex = targetIdx;
         setCurrentFrameDisplay(targetIdx + 1);
+        setCurrentTimeSec(Number(((targetIdx / (frameCount - 1)) * 10).toFixed(1)));
       }
     };
 
-    // 4. Intersection Observer to only process when in viewport
+    renderFrameRef.current = renderFrame;
+
+    // 4. Intersection Observer
     const observer = new IntersectionObserver(
       (entries) => {
         isVisible = entries[0].isIntersecting;
+        if (!isVisible && isPlayingRef.current) {
+          stopAutoPlay();
+        }
       },
-      { threshold: 0.01 }
+      { threshold: 0.05 }
     );
     observer.observe(trigger);
 
-    // 5. GSAP ScrollTrigger - 100% synchronous frame binding
+    // 5. GSAP ScrollTrigger - Smooth 60fps scrub
     const st = ScrollTrigger.create({
       trigger: trigger,
       start: "top top",
       end: "bottom bottom",
-      scrub: 0.05, // Ultra-crisp instantaneous binding
+      scrub: 0.6, // Smooth 60fps interpolation without sudden jump
       onUpdate: (self) => {
-        if (!isVisible) return;
+        if (!isVisible || isPlayingRef.current) return;
 
         const progress = Math.max(0, Math.min(1, self.progress));
         const frameIdx = Math.min(frameCount - 1, Math.floor(progress * frameCount));
@@ -195,7 +167,7 @@ export function CanvasFrameScrubber({
         clearTimeout(scrubTimeout);
         scrubTimeout = setTimeout(() => {
           setIsScrubbing(false);
-        }, 120);
+        }, 150);
 
         if (onProgress) {
           onProgress(progress);
@@ -210,8 +182,69 @@ export function CanvasFrameScrubber({
       st.kill();
       observer.disconnect();
       window.removeEventListener("resize", resizeCanvas);
+      if (autoPlayAnimId.current) {
+        cancelAnimationFrame(autoPlayAnimId.current);
+      }
     };
   }, [triggerRef, videoId, frameCount, onProgress, priority]);
+
+  // Auto-play the full 10-second sequence (180 frames @ 18fps) then scroll to next
+  const startAutoPlay = () => {
+    setIsPlayingAuto(true);
+    isPlayingRef.current = true;
+    setIsScrubbing(true);
+
+    let startTimestamp: number | null = null;
+    const durationMs = 10000; // Exact 10.0 seconds
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const elapsed = timestamp - startTimestamp;
+      const progress = Math.min(1, elapsed / durationMs);
+
+      const frameIdx = Math.min(frameCount - 1, Math.floor(progress * (frameCount - 1)));
+      renderFrameRef.current(frameIdx);
+
+      if (onProgress) {
+        onProgress(progress);
+      }
+
+      if (progress < 1 && isPlayingRef.current) {
+        autoPlayAnimId.current = requestAnimationFrame(step);
+      } else {
+        stopAutoPlay();
+        // 10 seconds complete: smoothly advance to the next section!
+        if (nextSectionId) {
+          setTimeout(() => {
+            const nextEl = document.getElementById(nextSectionId);
+            if (nextEl) {
+              nextEl.scrollIntoView({ behavior: "smooth" });
+            }
+          }, 350);
+        }
+      }
+    };
+
+    autoPlayAnimId.current = requestAnimationFrame(step);
+  };
+
+  const stopAutoPlay = () => {
+    setIsPlayingAuto(false);
+    isPlayingRef.current = false;
+    setIsScrubbing(false);
+    if (autoPlayAnimId.current) {
+      cancelAnimationFrame(autoPlayAnimId.current);
+      autoPlayAnimId.current = null;
+    }
+  };
+
+  const toggleAutoPlay = () => {
+    if (isPlayingAuto) {
+      stopAutoPlay();
+    } else {
+      startAutoPlay();
+    }
+  };
 
   return (
     <div className={`relative w-full h-full overflow-hidden bg-[#FAFAF8] ${className}`}>
@@ -233,21 +266,56 @@ export function CanvasFrameScrubber({
         }}
       />
 
-      {/* Frame Status Micro-Badge */}
-      <div className="absolute bottom-6 left-6 z-30 hidden md:flex items-center space-x-2 bg-[#FAFAF8]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[rgba(43,35,32,0.1)] text-[9px] font-mono text-[#574B46] tracking-wider uppercase shadow-sm">
-        <span
-          className={`w-1.5 h-1.5 rounded-full transition-colors ${
-            isScrubbing ? "bg-[#C27838] animate-ping" : "bg-[#2B2320]"
-          }`}
-        />
-        <span>
-          FRAME: {String(currentFrameDisplay).padStart(3, "0")} / {frameCount}
-        </span>
-        <span className="text-[rgba(43,35,32,0.25)]">|</span>
-        <span className={isScrubbing ? "text-[#C27838] font-bold" : "text-[#574B46]"}>
-          {isScrubbing ? "ACTIVE 60FPS SCRUB" : "FRAME HELD"}
-        </span>
+      {/* Frame Status Micro-Badge & 10s Play Controller */}
+      <div className="absolute bottom-6 left-6 z-30 flex items-center space-x-3">
+        {/* Play 10s Cinematic Sequence Button */}
+        <button
+          onClick={toggleAutoPlay}
+          data-cursor={isPlayingAuto ? "PAUSE" : "PLAY 10S"}
+          className="flex items-center space-x-2 bg-[#2B2320] text-[#FAFAF8] px-3.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest hover:bg-[#574B46] transition-all shadow-md group"
+        >
+          {isPlayingAuto ? (
+            <>
+              <Pause className="w-3 h-3 text-[#C27838]" />
+              <span>Pause 10s</span>
+            </>
+          ) : (
+            <>
+              <Play className="w-3 h-3 text-[#C27838] fill-current" />
+              <span>Play 10s Film</span>
+            </>
+          )}
+        </button>
+
+        {/* Live Frame / Time Metric */}
+        <div className="hidden sm:flex items-center space-x-2 bg-[#FAFAF8]/92 backdrop-blur-md px-3 py-1.5 rounded-full border border-[rgba(43,35,32,0.12)] text-[9px] font-mono text-[#574B46] tracking-wider uppercase shadow-xs">
+          <span
+            className={`w-1.5 h-1.5 rounded-full transition-colors ${
+              isScrubbing ? "bg-[#C27838] animate-ping" : "bg-[#2B2320]"
+            }`}
+          />
+          <span>
+            {currentTimeSec.toFixed(1)}s / 10.0s (FRAME {String(currentFrameDisplay).padStart(3, "0")})
+          </span>
+          <span className="text-[rgba(43,35,32,0.25)]">|</span>
+          <span className={isScrubbing ? "text-[#C27838] font-bold" : "text-[#574B46]"}>
+            {isPlayingAuto ? "10s FILM RUNNING" : isScrubbing ? "SCROLL SCRUBBING" : "FRAME HELD"}
+          </span>
+        </div>
       </div>
+
+      {/* Auto Next Indicator if nextSectionId present */}
+      {nextSectionId && (
+        <button
+          onClick={() => {
+            document.getElementById(nextSectionId)?.scrollIntoView({ behavior: "smooth" });
+          }}
+          className="absolute bottom-6 right-6 z-30 hidden md:flex items-center space-x-1.5 bg-[#FAFAF8]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[rgba(43,35,32,0.1)] text-[9px] font-mono text-[#574B46] hover:text-[#2B2320] transition-colors shadow-xs"
+        >
+          <span>NEXT CHAPTER</span>
+          <ChevronDown className="w-3 h-3" />
+        </button>
+      )}
     </div>
   );
 }

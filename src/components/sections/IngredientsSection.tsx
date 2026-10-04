@@ -71,7 +71,7 @@ export function IngredientsSection() {
     <section
       id="section-spices"
       ref={containerRef}
-      className="relative w-full h-[220vh] bg-[#FAFAF8]"
+      className="relative w-full h-[300vh] bg-[#FAFAF8]"
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
         {/* Background Scrubbed Frame Sequence (Video 3 - Spice Explosion) */}
@@ -80,6 +80,7 @@ export function IngredientsSection() {
             videoId="video-3"
             frameCount={180}
             triggerRef={containerRef}
+            nextSectionId="section-craft"
             onProgress={setScrollProgress}
           />
         </div>

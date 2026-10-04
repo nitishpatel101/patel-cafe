@@ -24,7 +24,7 @@ export function HeroSection() {
     <section
       id="section-thali"
       ref={containerRef}
-      className="relative w-full h-[220vh] bg-[#FAFAF8]"
+      className="relative w-full h-[300vh] bg-[#FAFAF8]"
     >
       {/* Sticky Fullscreen Scrubber Viewport */}
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
@@ -34,6 +34,7 @@ export function HeroSection() {
             videoId="video-1"
             frameCount={180}
             triggerRef={containerRef}
+            nextSectionId="section-heritage"
             onProgress={setScrollProgress}
             priority={true}
           />
