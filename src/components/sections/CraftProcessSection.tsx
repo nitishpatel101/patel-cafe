@@ -57,6 +57,8 @@ export function CraftProcessSection() {
             frameCount={180}
             triggerRef={containerRef}
             nextSectionId="section-sauces"
+            currentChapter="Chapter 04 // The Craft Assembly"
+            nextSectionTitle="Chapter 05 // Fluid Dynamics & Sauces"
             onProgress={setScrollProgress}
           />
         </div>

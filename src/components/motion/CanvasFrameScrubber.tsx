@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Play, Pause, ChevronDown } from "lucide-react";
+import { Play, Pause, ChevronDown, Sparkles } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -14,6 +14,8 @@ interface CanvasFrameScrubberProps {
   frameCount?: number; // default 180 frames (10 seconds @ 18fps)
   triggerRef: React.RefObject<HTMLElement | null>;
   nextSectionId?: string; // Automatically scroll to next section after 10s playback
+  nextSectionTitle?: string; // E.g. "Chapter 03 // Botanical Physics"
+  currentChapter?: string; // E.g. "Chapter 02 // Anatomy of a Delicacy"
   onProgress?: (progress: number) => void;
   className?: string;
   priority?: boolean;
@@ -24,11 +26,16 @@ export function CanvasFrameScrubber({
   frameCount = 180,
   triggerRef,
   nextSectionId,
+  nextSectionTitle,
+  currentChapter,
   onProgress,
   className = "",
   priority = false,
 }: CanvasFrameScrubberProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
+  const transitionCurtainRef = useRef<HTMLDivElement>(null);
+  const transitionBarRef = useRef<HTMLDivElement>(null);
   const [currentFrameDisplay, setCurrentFrameDisplay] = useState(1);
   const [currentTimeSec, setCurrentTimeSec] = useState(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -151,7 +158,7 @@ export function CanvasFrameScrubber({
     );
     observer.observe(trigger);
 
-    // 5. GSAP ScrollTrigger - Smooth 60fps scrub
+    // 5. GSAP ScrollTrigger - Smooth 60fps scrub with Inter-Video Transitions
     const st = ScrollTrigger.create({
       trigger: trigger,
       start: "top top",
@@ -161,7 +168,50 @@ export function CanvasFrameScrubber({
         if (!isVisible || isPlayingRef.current) return;
 
         const progress = Math.max(0, Math.min(1, self.progress));
-        const frameIdx = Math.min(frameCount - 1, Math.floor(progress * frameCount));
+
+        // Smoothly map 0.04 -> 0.86 to video frames (180 frames)
+        let videoProgress = 0;
+        if (progress <= 0.04) {
+          videoProgress = 0;
+        } else if (progress >= 0.86) {
+          videoProgress = 1;
+        } else {
+          videoProgress = (progress - 0.04) / (0.86 - 0.04);
+        }
+        const frameIdx = Math.min(frameCount - 1, Math.floor(videoProgress * (frameCount - 1)));
+
+        // 60FPS Hardware-accelerated canvas scale & opacity crossfade
+        if (canvasWrapperRef.current) {
+          let scale = 1.0;
+          let opacity = 1.0;
+          if (progress < 0.08) {
+            const enterRatio = progress / 0.08;
+            scale = 0.95 + 0.05 * enterRatio;
+            opacity = 0.25 + 0.75 * enterRatio;
+          } else if (progress > 0.84) {
+            const exitRatio = (progress - 0.84) / 0.16;
+            scale = 1.0 + 0.05 * exitRatio;
+            opacity = 1.0 - 0.65 * exitRatio;
+          }
+          canvasWrapperRef.current.style.transform = `scale(${scale.toFixed(4)})`;
+          canvasWrapperRef.current.style.opacity = opacity.toFixed(3);
+        }
+
+        // Luxury Chapter Transition Curtain
+        if (transitionCurtainRef.current) {
+          if (progress > 0.82) {
+            const curtainProgress = (progress - 0.82) / 0.16; // 0 to 1
+            transitionCurtainRef.current.style.opacity = String(Math.min(1, curtainProgress * 1.35));
+            if (transitionBarRef.current) {
+              transitionBarRef.current.style.width = `${Math.min(100, Math.round(curtainProgress * 100))}%`;
+            }
+          } else if (progress < 0.06) {
+            const enterCurtain = (0.06 - progress) / 0.06;
+            transitionCurtainRef.current.style.opacity = String(Math.min(1, enterCurtain * 0.7));
+          } else {
+            transitionCurtainRef.current.style.opacity = "0";
+          }
+        }
 
         setIsScrubbing(true);
         clearTimeout(scrubTimeout);
@@ -209,6 +259,19 @@ export function CanvasFrameScrubber({
         onProgress(progress);
       }
 
+      // Animate transition curtain near conclusion of 10s playback
+      if (transitionCurtainRef.current) {
+        if (progress > 0.85) {
+          const curtainProg = (progress - 0.85) / 0.15;
+          transitionCurtainRef.current.style.opacity = String(Math.min(1, curtainProg * 1.35));
+          if (transitionBarRef.current) {
+            transitionBarRef.current.style.width = `${Math.min(100, Math.round(curtainProg * 100))}%`;
+          }
+        } else {
+          transitionCurtainRef.current.style.opacity = "0";
+        }
+      }
+
       if (progress < 1 && isPlayingRef.current) {
         autoPlayAnimId.current = requestAnimationFrame(step);
       } else {
@@ -248,14 +311,19 @@ export function CanvasFrameScrubber({
 
   return (
     <div className={`relative w-full h-full overflow-hidden bg-[#FAFAF8] ${className}`}>
-      {/* 60FPS Apple-Grade HTML5 Canvas */}
-      <canvas
-        ref={canvasRef}
-        className="w-full h-full object-cover block relative z-10"
-        style={{
-          backgroundColor: "#FAFAF8",
-        }}
-      />
+      {/* 60FPS Apple-Grade HTML5 Canvas with Hardware Scaled Crossfade */}
+      <div
+        ref={canvasWrapperRef}
+        className="w-full h-full will-change-transform origin-center transition-[transform,opacity] duration-75"
+      >
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full object-cover block relative z-10"
+          style={{
+            backgroundColor: "#FAFAF8",
+          }}
+        />
+      </div>
 
       {/* Seamless Studio Cyclorama Soft Radial Vignette */}
       <div
@@ -265,6 +333,39 @@ export function CanvasFrameScrubber({
             "radial-gradient(ellipse at center, transparent 65%, rgba(250, 250, 248, 0.45) 88%, rgba(250, 250, 248, 0.95) 100%)",
         }}
       />
+
+      {/* Luxury Editorial Chapter Transition Veil (Smooth handoff between videos) */}
+      <div
+        ref={transitionCurtainRef}
+        className="pointer-events-none absolute inset-0 z-25 flex flex-col items-center justify-center opacity-0 transition-opacity duration-200"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(250, 250, 248, 0.8) 0%, rgba(250, 250, 248, 0.97) 80%, #FAFAF8 100%)",
+        }}
+      >
+        <div className="text-center px-6 max-w-md space-y-3">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-[rgba(43,35,32,0.14)] bg-[#FAFAF8]/95 font-mono text-[9px] uppercase tracking-widest text-[#C27838] shadow-xs">
+            <Sparkles className="w-3 h-3 text-[#C27838]" />
+            <span>{currentChapter ? `${currentChapter} Concluded` : "Chapter Complete"}</span>
+          </div>
+          {nextSectionTitle && (
+            <div>
+              <div className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#574B46] mb-1">
+                Entering Next Chapter
+              </div>
+              <h3 className="font-serif text-2xl md:text-3xl text-[#2B2320]">
+                {nextSectionTitle}
+              </h3>
+            </div>
+          )}
+          <div className="w-40 h-[2px] mx-auto bg-[rgba(43,35,32,0.12)] rounded-full overflow-hidden">
+            <div
+              ref={transitionBarRef}
+              className="h-full bg-[#C27838] w-0 transition-all duration-75"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Frame Status Micro-Badge & 10s Play Controller */}
       <div className="absolute bottom-6 left-6 z-30 flex items-center space-x-3">

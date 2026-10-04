@@ -37,6 +37,8 @@ export function SaucesSection() {
             frameCount={180}
             triggerRef={containerRef}
             nextSectionId="section-dining"
+            currentChapter="Chapter 05 // Signature Sauces"
+            nextSectionTitle="Chapter 06 // The Grand Atelier Dining"
             onProgress={setScrollProgress}
           />
         </div>

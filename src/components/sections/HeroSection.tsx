@@ -35,6 +35,8 @@ export function HeroSection() {
             frameCount={180}
             triggerRef={containerRef}
             nextSectionId="section-heritage"
+            currentChapter="Chapter 01 // The Royal Thali"
+            nextSectionTitle="Chapter 02 // Philosophy & Heritage"
             onProgress={setScrollProgress}
             priority={true}
           />

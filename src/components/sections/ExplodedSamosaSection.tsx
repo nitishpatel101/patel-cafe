@@ -90,6 +90,8 @@ export function ExplodedSamosaSection() {
             frameCount={180}
             triggerRef={containerRef}
             nextSectionId="section-spices"
+            currentChapter="Chapter 02 // Anatomy of a Delicacy"
+            nextSectionTitle="Chapter 03 // Botanical Physics & Spices"
             onProgress={setScrollProgress}
           />
         </div>

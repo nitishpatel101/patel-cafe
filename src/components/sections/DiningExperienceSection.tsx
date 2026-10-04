@@ -23,6 +23,8 @@ export function DiningExperienceSection() {
             frameCount={180}
             triggerRef={containerRef}
             nextSectionId="section-cafe-menu"
+            currentChapter="Chapter 06 // The Grand Atelier Dining"
+            nextSectionTitle="Chapter 07 // Artisanal Café Repertoire"
             onProgress={setScrollProgress}
           />
         </div>
