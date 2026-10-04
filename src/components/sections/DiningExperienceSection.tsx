@@ -13,7 +13,7 @@ export function DiningExperienceSection() {
     <section
       id="section-dining"
       ref={containerRef}
-      className="relative w-full h-[260vh] bg-[#FAFAF8]"
+      className="relative w-full h-[220vh] bg-[#FAFAF8]"
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
         {/* Background Scrubbed Video (Video 6 - Dining Table Materialization) */}

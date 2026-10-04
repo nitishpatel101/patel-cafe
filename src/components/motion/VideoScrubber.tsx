@@ -38,16 +38,56 @@ export function VideoScrubber({
     const trigger = triggerRef.current;
     if (!video || !trigger) return;
 
-    let targetTime = 0;
-    let smoothedTime = 0;
-    let isVisible = true;
     let isSeeking = false;
     let pendingTime: number | null = null;
-    let animId: number;
+    let isVisible = false;
     let scrubTimeout: NodeJS.Timeout;
+    let lastSetTime = -1;
 
-    // Ensure video is paused and ready for scrubbing
+    // Force paused state so the video never autoplays on its own
     video.pause();
+
+    const applySeek = (targetTime: number) => {
+      if (!video || video.readyState < 1) return;
+      const dur = video.duration && !isNaN(video.duration) && video.duration > 0 ? video.duration : duration;
+      const clamped = Math.max(0.001, Math.min(targetTime, dur - 0.02));
+
+      // Avoid unnecessary seeks if time hasn't changed noticeably (30ms threshold = ~33fps seek resolution)
+      if (Math.abs(clamped - lastSetTime) < 0.03) {
+        return;
+      }
+
+      if (!isSeeking) {
+        isSeeking = true;
+        lastSetTime = clamped;
+        setCurrentDisplayTime(clamped);
+
+        try {
+          if (
+            "fastSeek" in video &&
+            typeof (video as unknown as { fastSeek: (t: number) => void }).fastSeek === "function"
+          ) {
+            (video as unknown as { fastSeek: (t: number) => void }).fastSeek(clamped);
+          } else {
+            video.currentTime = clamped;
+          }
+        } catch {
+          isSeeking = false;
+        }
+      } else {
+        // Queue the latest target time so we jump to the most recent frame as soon as seek completes
+        pendingTime = clamped;
+      }
+    };
+
+    const handleSeeked = () => {
+      isSeeking = false;
+      if (pendingTime !== null) {
+        const nextTime = pendingTime;
+        pendingTime = null;
+        applySeek(nextTime);
+      }
+    };
 
     const onLoadedMeta = () => {
       if (video.duration && !isNaN(video.duration) && video.duration > 0) {
@@ -55,7 +95,7 @@ export function VideoScrubber({
       }
       setIsLoaded(true);
       video.pause();
-      // Prime the initial frame at 0.01s so cyclorama background is visible immediately
+      // Prime initial frame
       try {
         video.currentTime = 0.01;
       } catch {
@@ -63,95 +103,55 @@ export function VideoScrubber({
       }
     };
 
-    const handleSeeking = () => {
-      isSeeking = true;
-    };
-
-    const handleSeeked = () => {
-      isSeeking = false;
-      if (pendingTime !== null) {
-        const next = pendingTime;
-        pendingTime = null;
-        try {
-          video.currentTime = next;
-        } catch {
-          // ignore
-        }
-      }
-    };
-
     video.addEventListener("loadedmetadata", onLoadedMeta);
-    video.addEventListener("seeking", handleSeeking);
     video.addEventListener("seeked", handleSeeked);
 
-    // Intersection observer to pause calculations when out of viewport
+    // Only process seeks when the section is in view
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         isVisible = entry.isIntersecting;
         if (!isVisible) {
           video.pause();
+          pendingTime = null;
         }
       },
-      { threshold: 0.02 }
+      { threshold: 0.01 }
     );
     observer.observe(trigger);
 
-    // GSAP ScrollTrigger to capture precise scroll progress
+    // GSAP ScrollTrigger configured for crisp, direct response
     const st = ScrollTrigger.create({
       trigger: trigger,
       start: "top top",
       end: "bottom bottom",
-      scrub: 0.35, // Ultra-responsive scroll-scrub response
+      scrub: 0.1, // Near-instantaneous response: scroll directly binds to video frame
       onUpdate: (self) => {
+        if (!isVisible) return;
+
         const progress = Math.max(0, Math.min(1, self.progress));
         const dur = video.duration && !isNaN(video.duration) && video.duration > 0 ? video.duration : duration;
-        targetTime = progress * dur;
-        
+        const target = progress * dur;
+
         setIsScrubbing(true);
         clearTimeout(scrubTimeout);
         scrubTimeout = setTimeout(() => {
           setIsScrubbing(false);
-        }, 180);
+        }, 120);
 
         if (onProgress) {
           onProgress(progress);
         }
+
+        applySeek(target);
       },
     });
 
-    // Lerp animation loop for smooth frame seeking
-    const scrubLoop = () => {
-      if (isVisible && video.readyState >= 1) {
-        const diff = targetTime - smoothedTime;
-        if (Math.abs(diff) > 0.01) {
-          smoothedTime += diff * 0.3;
-          const clamped = Math.max(0, Math.min(smoothedTime, (video.duration || 10) - 0.02));
-          setCurrentDisplayTime(clamped);
-
-          if (!isSeeking) {
-            try {
-              video.currentTime = clamped;
-            } catch {
-              // ignore
-            }
-          } else {
-            pendingTime = clamped;
-          }
-        }
-      }
-      animId = requestAnimationFrame(scrubLoop);
-    };
-
-    animId = requestAnimationFrame(scrubLoop);
-
     return () => {
-      cancelAnimationFrame(animId);
       clearTimeout(scrubTimeout);
       st.kill();
       observer.disconnect();
       video.removeEventListener("loadedmetadata", onLoadedMeta);
-      video.removeEventListener("seeking", handleSeeking);
       video.removeEventListener("seeked", handleSeeked);
     };
   }, [triggerRef, onProgress, duration]);
@@ -204,7 +204,7 @@ export function VideoScrubber({
         }}
       />
 
-      {/* Frame Status Micro-Badge (indicates scroll scrubbing & static hold) */}
+      {/* Frame Status Micro-Badge */}
       <div className="absolute bottom-6 left-6 z-30 hidden md:flex items-center space-x-2 bg-[#FAFAF8]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[rgba(43,35,32,0.1)] text-[9px] font-mono text-[#574B46] tracking-wider uppercase shadow-sm">
         <span
           className={`w-1.5 h-1.5 rounded-full transition-colors ${

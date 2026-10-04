@@ -19,6 +19,7 @@ export function FloatingSpiceCanvas({
     if (!container) return;
 
     let animationFrameId: number;
+    let isVisible = true;
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
 
@@ -27,25 +28,24 @@ export function FloatingSpiceCanvas({
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.z = 24;
 
-    // Renderer
+    // High performance renderer with capped pixel ratio
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
-      antialias: true,
+      antialias: false, // Turn off heavy MSAA for ultra-fast fillrate
       powerPreference: "high-performance",
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.setPixelRatio(1);
     container.appendChild(renderer.domElement);
 
-    // Particle geometry - Organic spice flecks & golden turmeric dust
-    const particleCount = Math.floor(140 * intensity);
+    // Particle geometry - Clean organic spice flecks
+    const particleCount = Math.floor(65 * intensity);
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
     const colors = new Float32Array(particleCount * 3);
     const sizes = new Float32Array(particleCount);
     const velocities = new Float32Array(particleCount * 3);
 
-    // Palette: Gold turmeric (#D4AF37), Warm Cinnamon (#A95328), Tellicherry Black Pepper (#332822), Cardamom Green (#7D8B58)
     const palette = [
       new THREE.Color("#C27838"), // Warm saffron/turmeric
       new THREE.Color("#9E3C1B"), // Kashmiri chili
@@ -65,18 +65,17 @@ export function FloatingSpiceCanvas({
       colors[i3 + 1] = col.g;
       colors[i3 + 2] = col.b;
 
-      sizes[i] = Math.random() * 2.8 + 1.2;
+      sizes[i] = Math.random() * 2.4 + 1.2;
 
-      velocities[i3] = (Math.random() - 0.5) * 0.004;
-      velocities[i3 + 1] = Math.random() * 0.006 + 0.002; // gentle upward thermal drift
-      velocities[i3 + 2] = (Math.random() - 0.5) * 0.003;
+      velocities[i3] = (Math.random() - 0.5) * 0.003;
+      velocities[i3 + 1] = Math.random() * 0.005 + 0.002;
+      velocities[i3 + 2] = (Math.random() - 0.5) * 0.002;
     }
 
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
 
-    // Custom circle shader material for soft circular spice dust
     const material = new THREE.ShaderMaterial({
       vertexShader: `
         attribute float size;
@@ -84,7 +83,7 @@ export function FloatingSpiceCanvas({
         void main() {
           vColor = color;
           vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = size * (26.0 / -mvPosition.z);
+          gl_PointSize = size * (24.0 / -mvPosition.z);
           gl_Position = projectionMatrix * mvPosition;
         }
       `,
@@ -93,7 +92,7 @@ export function FloatingSpiceCanvas({
         void main() {
           float dist = length(gl_PointCoord - vec2(0.5));
           if (dist > 0.5) discard;
-          float alpha = smoothstep(0.5, 0.05, dist) * 0.55;
+          float alpha = (1.0 - dist * 2.0) * 0.5;
           gl_FragColor = vec4(vColor, alpha);
         }
       `,
@@ -106,7 +105,7 @@ export function FloatingSpiceCanvas({
     const points = new THREE.Points(geometry, material);
     scene.add(points);
 
-    // Mouse tracking with soft damping
+    // Mouse tracking
     let targetMouseX = 0;
     let targetMouseY = 0;
     let currentMouseX = 0;
@@ -119,7 +118,15 @@ export function FloatingSpiceCanvas({
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
-    // Resize handler
+    // Intersection observer: only render WebGL when canvas is actually visible
+    const observer = new IntersectionObserver(
+      (entries) => {
+        isVisible = entries[0].isIntersecting;
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(container);
+
     const handleResize = () => {
       if (!container) return;
       const w = container.clientWidth || window.innerWidth;
@@ -131,35 +138,27 @@ export function FloatingSpiceCanvas({
 
     window.addEventListener("resize", handleResize);
 
-    // Animation Loop
-    let clock = new THREE.Clock();
-
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      const delta = clock.getDelta();
+      if (!isVisible) return;
 
-      // Smooth mouse parallax
-      currentMouseX += (targetMouseX - currentMouseX) * 0.04;
-      currentMouseY += (targetMouseY - currentMouseY) * 0.04;
+      currentMouseX += (targetMouseX - currentMouseX) * 0.03;
+      currentMouseY += (targetMouseY - currentMouseY) * 0.03;
 
-      scene.rotation.y = currentMouseX * 0.15;
-      scene.rotation.x = -currentMouseY * 0.12;
+      scene.rotation.y = currentMouseX * 0.12;
+      scene.rotation.x = -currentMouseY * 0.1;
 
-      // Update particle positions
       const pos = geometry.attributes.position.array as Float32Array;
       for (let i = 0; i < particleCount; i++) {
         const i3 = i * 3;
         pos[i3 + 1] += velocities[i3 + 1];
-        pos[i3] += Math.sin(pos[i3 + 1] * 0.6) * 0.003;
 
-        // Reset if reached ceiling
         if (pos[i3 + 1] > 12) {
           pos[i3 + 1] = -12;
           pos[i3] = (Math.random() - 0.5) * 32;
         }
       }
       geometry.attributes.position.needsUpdate = true;
-
       renderer.render(scene, camera);
     };
 
@@ -167,9 +166,10 @@ export function FloatingSpiceCanvas({
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("resize", handleResize);
-      if (container && renderer.domElement) {
+      if (container && renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
       geometry.dispose();

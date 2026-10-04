@@ -47,7 +47,7 @@ export function CraftProcessSection() {
     <section
       id="section-craft"
       ref={containerRef}
-      className="relative w-full h-[260vh] bg-[#FAFAF8]"
+      className="relative w-full h-[220vh] bg-[#FAFAF8]"
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
         {/* Background Scrubbed Video (Video 4 - Ingredient Assembly) */}

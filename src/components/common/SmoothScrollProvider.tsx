@@ -19,10 +19,12 @@ export function SmoothScrollProvider({
     }
 
     const lenis = new Lenis({
-      duration: 1.25,
+      duration: 1.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
+      wheelMultiplier: 1.0,
       touchMultiplier: 1.5,
+      autoRaf: false, // Essential when driving Lenis via GSAP ticker
     });
 
     setLenisInstance(lenis);
@@ -35,7 +37,8 @@ export function SmoothScrollProvider({
     };
 
     gsap.ticker.add(tickerCallback);
-    gsap.ticker.lagSmoothing(0);
+    // Use standard lag smoothing so frame drops do not cause sudden jumps
+    gsap.ticker.lagSmoothing(500, 33);
 
     return () => {
       gsap.ticker.remove(tickerCallback);
