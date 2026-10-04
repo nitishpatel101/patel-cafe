@@ -66,8 +66,8 @@ export function CustomCursor() {
         }}
         animate={{
           scale: isHovered ? (cursorText ? 2.6 : 1.6) : 1,
-          backgroundColor: cursorText ? "rgba(43, 35, 32, 0.92)" : isHovered ? "rgba(43, 35, 32, 0.08)" : "transparent",
-          borderColor: cursorText ? "transparent" : "rgba(43, 35, 32, 0.35)",
+          backgroundColor: cursorText ? "rgba(43, 35, 32, 0.92)" : isHovered ? "rgba(43, 35, 32, 0.08)" : "rgba(0, 0, 0, 0)",
+          borderColor: cursorText ? "rgba(0, 0, 0, 0)" : "rgba(43, 35, 32, 0.35)",
         }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         className="flex items-center justify-center rounded-full border border-[rgba(43,35,32,0.3)] backdrop-blur-[1px] w-9 h-9"
