@@ -10,14 +10,14 @@ export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Floating culinary element callouts that fade in as thali explodes
+  // Floating culinary element callouts pushed to outer edges so central thali is 100% visible
   const elements = [
-    { label: "01/36 · Saffron Dum Rice", desc: "Long-grain aged basmati steeped in Kashmir saffron", top: "24%", left: "12%", trigger: 0.15 },
-    { label: "02/36 · Dal Bukhara 24H", desc: "Slow simmered over charcoal with churned butter", top: "28%", right: "12%", trigger: 0.28 },
-    { label: "03/36 · Tandoori Paneer Tikka", desc: "Aged cow's milk paneer, crushed coriander roast", top: "68%", left: "14%", trigger: 0.42 },
-    { label: "04/36 · Khamir Naan & Papad", desc: "Stone-ground flour fired in clay tandoor", top: "72%", right: "14%", trigger: 0.55 },
-    { label: "05/36 · Royal Condiments & Raita", desc: "Wild cucumber, toasted cumin, mango relish", top: "48%", left: "8%", trigger: 0.68 },
-    { label: "06/36 · Kesar Phirni Bowl", desc: "Hand-pounded rice pudding, silver leaf & pistachio", top: "48%", right: "8%", trigger: 0.78 },
+    { label: "01/36 · Saffron Dum Rice", desc: "Long-grain aged basmati steeped in Kashmir saffron", top: "20%", left: "4%", trigger: 0.15 },
+    { label: "02/36 · Dal Bukhara 24H", desc: "Slow simmered over charcoal with churned butter", top: "20%", right: "4%", trigger: 0.28 },
+    { label: "03/36 · Tandoori Paneer Tikka", desc: "Aged cow's milk paneer, crushed coriander roast", top: "70%", left: "4%", trigger: 0.42 },
+    { label: "04/36 · Khamir Naan & Papad", desc: "Stone-ground flour fired in clay tandoor", top: "70%", right: "4%", trigger: 0.55 },
+    { label: "05/36 · Royal Condiments & Raita", desc: "Wild cucumber, toasted cumin, mango relish", top: "45%", left: "3%", trigger: 0.68 },
+    { label: "06/36 · Kesar Phirni Bowl", desc: "Hand-pounded rice pudding, silver leaf & pistachio", top: "45%", right: "3%", trigger: 0.78 },
   ];
 
   return (
@@ -77,38 +77,38 @@ export function HeroSection() {
         </div>
 
         {/* Top Spacer for Nav */}
-        <div className="relative z-30 pt-24 px-6 md:px-16" />
+        <div className="relative z-30 pt-20 px-6 md:px-14" />
 
-        {/* Hero Headline Overlay (moves gracefully as scrub progresses) */}
+        {/* Hero Editorial Header - Positioned at Top-Left to keep center thali 100% visible */}
         <div
-          className="relative z-30 max-w-7xl mx-auto px-6 md:px-16 w-full text-center pointer-events-none transition-all duration-300"
+          className="absolute top-24 md:top-28 left-6 md:left-14 z-30 max-w-md pointer-events-none transition-all duration-300"
           style={{
-            transform: `translateY(-${scrollProgress * 65}px)`,
-            opacity: Math.max(0, 1 - scrollProgress * 1.8),
+            transform: `translateY(-${scrollProgress * 40}px)`,
+            opacity: Math.max(0, 1 - scrollProgress * 3.2),
           }}
         >
-          <div className="inline-flex items-center space-x-2 font-mono text-[10px] md:text-xs uppercase tracking-[0.28em] text-[#574B46] mb-3 bg-[#FAFAF8]/80 backdrop-blur-sm px-4 py-1.5 rounded-full border border-[rgba(43,35,32,0.08)]">
+          <div className="inline-flex items-center space-x-2 font-mono text-[9px] uppercase tracking-[0.24em] text-[#574B46] mb-2.5 bg-[#FAFAF8]/90 backdrop-blur-md px-3 py-1 rounded-full border border-[rgba(43,35,32,0.1)] shadow-xs">
             <Sparkles className="w-3 h-3 text-[#C27838]" />
-            <span>PATEL ATELIER & CAFÉ // 36 DECONSTRUCTED ELEMENTS</span>
+            <span>PATEL ATELIER · 36 ELEMENTS</span>
           </div>
 
-          <h1 className="font-serif text-5xl sm:text-7xl md:text-9xl text-[#2B2320] tracking-tight leading-[0.92] mb-6">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-[#2B2320] tracking-tight leading-[1.02] mb-3">
             PATEL <br />
             <span className="font-serif italic font-light text-[#574B46]">FLAVOUR ATELIER</span>
           </h1>
 
-          <p className="max-w-xl mx-auto text-sm sm:text-base md:text-lg text-[#574B46] font-normal leading-relaxed mb-8">
-            A bespoke meeting of royal Indian gastronomy and artisanal café culture. Every brass katori, single-origin brew, and fragile spice particle suspended in frame-accurate equilibrium.
+          <p className="text-xs sm:text-sm text-[#574B46] font-normal leading-relaxed mb-5 max-w-xs">
+            Royal Indian culinary architecture deconstructed in zero-gravity equilibrium.
           </p>
 
-          {/* Interactive CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pointer-events-auto">
+          {/* Interactive Compact CTAs */}
+          <div className="flex items-center gap-3 pointer-events-auto">
             <MagneticButton
               onClick={() => {
                 document.getElementById("section-reservation")?.scrollIntoView({ behavior: "smooth" });
               }}
               dataCursor="BOOK TABLE"
-              className="bg-[#2B2320] text-[#FAFAF8] font-mono text-[11px] uppercase tracking-[0.22em] px-8 py-4 rounded-full hover:bg-[#574B46] transition-all duration-300 shadow-md"
+              className="bg-[#2B2320] text-[#FAFAF8] font-mono text-[10px] uppercase tracking-[0.2em] px-5 py-2.5 rounded-full hover:bg-[#574B46] transition-all shadow-sm"
             >
               Reserve Table
             </MagneticButton>
@@ -116,10 +116,10 @@ export function HeroSection() {
               onClick={() => {
                 document.getElementById("section-cafe-menu")?.scrollIntoView({ behavior: "smooth" });
               }}
-              dataCursor="EXPLORE MENU"
-              className="border border-[rgba(43,35,32,0.25)] text-[#2B2320] font-mono text-[11px] uppercase tracking-[0.22em] px-8 py-4 rounded-full hover:bg-[rgba(43,35,32,0.04)] transition-all duration-300 bg-[#FAFAF8]/60 backdrop-blur-sm"
+              dataCursor="MENU"
+              className="border border-[rgba(43,35,32,0.25)] text-[#2B2320] font-mono text-[10px] uppercase tracking-[0.2em] px-5 py-2.5 rounded-full hover:bg-[rgba(43,35,32,0.06)] transition-all bg-[#FAFAF8]/90 backdrop-blur-sm"
             >
-              Explore Café Menu
+              Café Menu
             </MagneticButton>
           </div>
         </div>

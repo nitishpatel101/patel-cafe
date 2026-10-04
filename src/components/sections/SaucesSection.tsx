@@ -59,9 +59,9 @@ export function SaucesSection() {
           </div>
         </div>
 
-        {/* Floating 3D Tilt Cards */}
-        <div className="relative z-30 px-6 md:px-16 my-auto max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          {/* Card 1: Imperial Saunth */}
+        {/* Floating 3D Tilt Cards - Placed at Far Left and Far Right to keep the center chutney stream 100% clear */}
+        <div className="pointer-events-none absolute inset-0 z-30">
+          {/* Card 1: Imperial Saunth (Left Edge) */}
           <div
             onMouseMove={(e) => handleTilt(e, setCard1Tilt)}
             onMouseLeave={() => resetTilt(setCard1Tilt)}
@@ -70,39 +70,39 @@ export function SaucesSection() {
               transition: "transform 0.15s ease-out",
             }}
             data-cursor="TASTE"
-            className="bg-[#FAFAF8]/95 backdrop-blur-xl p-6 md:p-8 rounded-2xl border border-[rgba(43,35,32,0.12)] shadow-xl"
+            className="pointer-events-auto absolute left-4 sm:left-8 md:left-14 top-1/2 -translate-y-1/2 max-w-[260px] sm:max-w-[290px] bg-[#FAFAF8]/90 backdrop-blur-xl p-4 sm:p-6 rounded-2xl border border-[rgba(43,35,32,0.12)] shadow-xl"
           >
-            <div className="flex items-center justify-between border-b border-[rgba(43,35,32,0.08)] pb-2 mb-4">
+            <div className="flex items-center justify-between border-b border-[rgba(43,35,32,0.08)] pb-1.5 mb-2.5">
               <span className="font-mono text-[9px] uppercase tracking-widest text-[#A9442C] font-bold">
                 REDUCTION NO. 01
               </span>
-              <span className="font-mono text-[10px] text-[#574B46]">
-                AGING: 30-DAY SOLERA
+              <span className="font-mono text-[9px] text-[#574B46]">
+                30-DAY SOLERA
               </span>
             </div>
 
-            <h3 className="font-serif text-2xl sm:text-3xl text-[#2B2320] mb-1">
+            <h3 className="font-serif text-lg sm:text-2xl text-[#2B2320] mb-0.5">
               Imperial Saunth
             </h3>
-            <p className="font-serif italic text-sm text-[#574B46] mb-4">
-              Aged Tamarind & Sun-Dried Sonth Ginger
+            <p className="font-serif italic text-xs text-[#574B46] mb-2.5">
+              Aged Tamarind & Sun-Dried Sonth
             </p>
 
-            <p className="text-xs sm:text-sm text-[#574B46] leading-relaxed mb-6 font-normal">
-              Slow-cooked in clay pots with organic sugarcane jaggery, black rock salt, and toasted cumin. Pours in smooth, velvety ribbons that suspend in mid-air.
+            <p className="text-[11px] text-[#574B46] leading-relaxed mb-3 font-normal">
+              Slow-cooked in clay pots with organic sugarcane jaggery. Pours in velvety ribbons suspended in mid-air.
             </p>
 
-            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[rgba(43,35,32,0.08)] font-mono text-[10px] text-[#574B46] uppercase">
+            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-[rgba(43,35,32,0.08)] font-mono text-[9px] text-[#574B46] uppercase">
               <div>
-                <span className="text-[#C27838]">VISCOSITY:</span> 48 cP Ribbon
+                <span className="text-[#C27838]">VISCOSITY:</span> 48 cP
               </div>
               <div>
-                <span className="text-[#C27838]">PROFILE:</span> Sweet-Tart Warmth
+                <span className="text-[#C27838]">PROFILE:</span> Sweet-Tart
               </div>
             </div>
           </div>
 
-          {/* Card 2: Wild Mountain Mint */}
+          {/* Card 2: Wild Mountain Mint (Right Edge) */}
           <div
             onMouseMove={(e) => handleTilt(e, setCard2Tilt)}
             onMouseLeave={() => resetTilt(setCard2Tilt)}
@@ -111,34 +111,34 @@ export function SaucesSection() {
               transition: "transform 0.15s ease-out",
             }}
             data-cursor="TASTE"
-            className="bg-[#FAFAF8]/95 backdrop-blur-xl p-6 md:p-8 rounded-2xl border border-[rgba(43,35,32,0.12)] shadow-xl"
+            className="pointer-events-auto absolute right-4 sm:right-8 md:right-14 top-1/2 -translate-y-1/2 max-w-[260px] sm:max-w-[290px] bg-[#FAFAF8]/90 backdrop-blur-xl p-4 sm:p-6 rounded-2xl border border-[rgba(43,35,32,0.12)] shadow-xl"
           >
-            <div className="flex items-center justify-between border-b border-[rgba(43,35,32,0.08)] pb-2 mb-4">
+            <div className="flex items-center justify-between border-b border-[rgba(43,35,32,0.08)] pb-1.5 mb-2.5">
               <span className="font-mono text-[9px] uppercase tracking-widest text-[#5A6B48] font-bold">
                 EXTRACT NO. 02
               </span>
-              <span className="font-mono text-[10px] text-[#574B46]">
-                HARVEST: HIMALAYAN FOOTHILLS
+              <span className="font-mono text-[9px] text-[#574B46]">
+                HIMALAYAS
               </span>
             </div>
 
-            <h3 className="font-serif text-2xl sm:text-3xl text-[#2B2320] mb-1">
+            <h3 className="font-serif text-lg sm:text-2xl text-[#2B2320] mb-0.5">
               Himalayan Pudina
             </h3>
-            <p className="font-serif italic text-sm text-[#574B46] mb-4">
-              Wild Mint, Coriander & Raw Mango Coulis
+            <p className="font-serif italic text-xs text-[#574B46] mb-2.5">
+              Wild Mint & Raw Mango Coulis
             </p>
 
-            <p className="text-xs sm:text-sm text-[#574B46] leading-relaxed mb-6 font-normal">
-              Fresh mountain mint leaves hand-pounded with tart green mango and green chillies. Electric verdant color with refreshing herbaceous acidity.
+            <p className="text-[11px] text-[#574B46] leading-relaxed mb-3 font-normal">
+              Mountain mint hand-pounded with tart green mango and green chillies. Electric verdant herbaceous acidity.
             </p>
 
-            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[rgba(43,35,32,0.08)] font-mono text-[10px] text-[#574B46] uppercase">
+            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-[rgba(43,35,32,0.08)] font-mono text-[9px] text-[#574B46] uppercase">
               <div>
-                <span className="text-[#5A6B48]">ACIDITY:</span> pH 3.8 Bright
+                <span className="text-[#5A6B48]">ACIDITY:</span> pH 3.8
               </div>
               <div>
-                <span className="text-[#5A6B48]">PROFILE:</span> Herbaceous Chill
+                <span className="text-[#5A6B48]">PROFILE:</span> Cool Herb
               </div>
             </div>
           </div>

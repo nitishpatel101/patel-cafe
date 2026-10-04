@@ -45,68 +45,37 @@ export function DiningExperienceSection() {
           </div>
         </div>
 
-        {/* Center Editorial Narrative & Overlapping Parallax Image Gallery */}
-        <div className="relative z-30 px-6 md:px-16 my-auto max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Left Typography */}
-            <div className="lg:col-span-5 space-y-6 bg-[#FAFAF8]/90 backdrop-blur-md p-6 sm:p-8 rounded-2xl border border-[rgba(43,35,32,0.08)] shadow-lg">
-              <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#C27838] font-bold">
-                CONVIVIAL ARCHITECTURE
-              </span>
-              <h3 className="font-serif text-3xl sm:text-5xl text-[#2B2320] leading-tight">
-                Where royal heritage <br />
-                <span className="font-serif italic font-light text-[#574B46]">meets modern restraint.</span>
-              </h3>
-              <p className="text-xs sm:text-sm text-[#574B46] leading-relaxed">
-                The suspended ingredients settle onto handcrafted walnut tables and artisanal stoneware. Linen woven in Maheshwar, copper cups hammered in Jaipur, and natural daylight flooding through floor-to-ceiling studio windows.
-              </p>
-              <div className="pt-4 border-t border-[rgba(43,35,32,0.08)] flex items-center justify-between font-mono text-[10px] text-[#574B46] uppercase">
-                <span>SEATING: 24 GUESTS ONLY</span>
-                <span>CHEF ATELIER SERVICE</span>
-              </div>
+        {/* Center Editorial Narrative & Stills - Positioned on Outer Edges to leave center dining table 100% visible */}
+        <div className="pointer-events-none absolute inset-0 z-30">
+          {/* Left Narrative Card */}
+          <div className="pointer-events-auto absolute left-4 sm:left-8 md:left-14 top-1/2 -translate-y-1/2 max-w-xs sm:max-w-sm space-y-3 bg-[#FAFAF8]/90 backdrop-blur-xl p-5 md:p-6 rounded-2xl border border-[rgba(43,35,32,0.12)] shadow-xl">
+            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#C27838] font-bold">
+              CONVIVIAL ARCHITECTURE
+            </span>
+            <h3 className="font-serif text-2xl sm:text-3xl text-[#2B2320] leading-tight">
+              Where royal heritage <br />
+              <span className="font-serif italic font-light text-[#574B46]">meets restraint.</span>
+            </h3>
+            <p className="text-xs text-[#574B46] leading-relaxed">
+              Handcrafted walnut tables, artisanal stoneware, linen from Maheshwar, and natural daylight flooding through cyclorama studio windows.
+            </p>
+            <div className="pt-2.5 border-t border-[rgba(43,35,32,0.08)] flex items-center justify-between font-mono text-[9px] text-[#574B46] uppercase">
+              <span>24 GUESTS ONLY</span>
+              <span>ATELIER SERVICE</span>
             </div>
+          </div>
 
-            {/* Right Overlapping Parallax Cards */}
-            <div className="lg:col-span-7 relative h-[260px] sm:h-[340px] hidden sm:block">
-              {/* Card 1: Spice Geometry */}
-              <div
-                style={{
-                  transform: `translate(${scrollProgress * 20}px, -${scrollProgress * 15}px) rotate(-2deg)`,
-                  transition: "transform 0.2s ease-out",
-                }}
-                className="absolute top-0 right-16 w-56 md:w-64 aspect-[4/3] rounded-xl overflow-hidden border border-[rgba(43,35,32,0.12)] shadow-xl bg-[#FAFAF8]"
-              >
-                <Image
-                  src="/images/image-3.webp"
-                  alt="Spice Geometry Still"
-                  fill
-                  className="object-cover"
-                  sizes="260px"
-                />
-                <div className="absolute bottom-2 left-2 bg-[#2B2320]/80 text-[#FAFAF8] font-mono text-[8px] uppercase tracking-wider px-2 py-0.5 rounded">
-                  SPICE GEOMETRY
-                </div>
-              </div>
-
-              {/* Card 2: Samosa Macro */}
-              <div
-                style={{
-                  transform: `translate(-${scrollProgress * 25}px, ${scrollProgress * 20}px) rotate(3deg)`,
-                  transition: "transform 0.2s ease-out",
-                }}
-                className="absolute bottom-0 right-0 w-60 md:w-72 aspect-[4/3] rounded-xl overflow-hidden border border-[rgba(43,35,32,0.12)] shadow-2xl bg-[#FAFAF8] z-10"
-              >
-                <Image
-                  src="/images/image-2.webp"
-                  alt="Samosa Macro Still"
-                  fill
-                  className="object-cover"
-                  sizes="300px"
-                />
-                <div className="absolute bottom-2 left-2 bg-[#2B2320]/80 text-[#FAFAF8] font-mono text-[8px] uppercase tracking-wider px-2 py-0.5 rounded">
-                  MACRO LAMINATION
-                </div>
-              </div>
+          {/* Right Top Parallax Still (Tucked into top-right corner) */}
+          <div className="pointer-events-auto absolute top-24 md:top-28 right-6 md:right-14 hidden lg:block w-52 aspect-[4/3] rounded-xl overflow-hidden border border-[rgba(43,35,32,0.12)] shadow-lg bg-[#FAFAF8]">
+            <Image
+              src="/images/image-2.webp"
+              alt="Culinary macro still"
+              fill
+              className="object-cover"
+              sizes="220px"
+            />
+            <div className="absolute bottom-2 left-2 bg-[#2B2320]/80 text-[#FAFAF8] font-mono text-[8px] uppercase tracking-wider px-2 py-0.5 rounded">
+              ARCHIVAL MACRO
             </div>
           </div>
         </div>

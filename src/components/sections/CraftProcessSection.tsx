@@ -120,26 +120,26 @@ export function CraftProcessSection() {
           </div>
         </div>
 
-        {/* Active Step Floating Narrative Card */}
-        <div className="relative z-30 px-6 md:px-16 my-auto max-w-2xl">
-          <div className="bg-[#FAFAF8]/95 backdrop-blur-xl p-6 md:p-8 rounded-2xl border border-[rgba(43,35,32,0.12)] shadow-xl transition-all duration-500">
-            <div className="flex items-center space-x-3 mb-2 font-mono text-xs uppercase tracking-widest text-[#C27838]">
-              <span>{currentStep.phase}</span>
+        {/* Active Step Floating Narrative Card - Positioned at Bottom-Left to leave center video 100% visible */}
+        <div className="absolute left-4 sm:left-8 md:left-14 bottom-20 sm:bottom-24 z-30 max-w-sm sm:max-w-md">
+          <div className="bg-[#FAFAF8]/90 backdrop-blur-xl p-4 sm:p-6 rounded-2xl border border-[rgba(43,35,32,0.12)] shadow-xl transition-all duration-500">
+            <div className="flex items-center space-x-2.5 mb-1.5 font-mono text-[10px] uppercase tracking-widest text-[#C27838]">
+              <span className="font-bold">{currentStep.phase}</span>
               <span>·</span>
-              <span>THERMAL SPEC: {currentStep.temperature}</span>
+              <span>{currentStep.temperature}</span>
             </div>
 
-            <h3 className="font-serif text-2xl md:text-3xl text-[#2B2320] mb-3">
+            <h3 className="font-serif text-lg sm:text-2xl text-[#2B2320] mb-2 leading-snug">
               {currentStep.title}
             </h3>
 
-            <p className="text-sm md:text-base text-[#574B46] leading-relaxed mb-6 font-normal">
+            <p className="text-xs sm:text-sm text-[#574B46] leading-relaxed mb-3 font-normal">
               {currentStep.desc}
             </p>
 
-            <div className="flex items-center justify-between pt-4 border-t border-[rgba(43,35,32,0.08)] text-[10px] font-mono text-[#574B46] uppercase tracking-wider">
-              <span>EXPLODED ENGINEERING SCHEMATIC</span>
-              <span>CONTINUE SCROLLING ↘</span>
+            <div className="flex items-center justify-between pt-2.5 border-t border-[rgba(43,35,32,0.08)] text-[9px] font-mono text-[#574B46] uppercase tracking-wider">
+              <span>EXPLODED SCHEMATIC</span>
+              <span>SCROLL TO PROCEED ↘</span>
             </div>
           </div>
         </div>
