@@ -35,8 +35,6 @@ export function HeroSection() {
             frameCount={180}
             triggerRef={containerRef}
             nextSectionId="section-samosa"
-            currentChapter="The Royal Thali"
-            nextSectionTitle="Anatomy of a Samosa"
             onProgress={setScrollProgress}
             priority={true}
           />

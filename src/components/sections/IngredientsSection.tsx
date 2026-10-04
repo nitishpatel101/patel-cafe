@@ -81,8 +81,6 @@ export function IngredientsSection() {
             frameCount={180}
             triggerRef={containerRef}
             nextSectionId="section-craft"
-            currentChapter="Botanical Physics"
-            nextSectionTitle="Dum Pukht Assembly Craft"
             onProgress={setScrollProgress}
           />
         </div>

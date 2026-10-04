@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Play, Pause, ChevronDown, Sparkles } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -14,8 +14,8 @@ interface CanvasFrameScrubberProps {
   frameCount?: number; // default 180 frames (10 seconds @ 18fps)
   triggerRef: React.RefObject<HTMLElement | null>;
   nextSectionId?: string; // Automatically scroll to next section after 10s playback
-  nextSectionTitle?: string; // E.g. "Chapter 03 // Botanical Physics"
-  currentChapter?: string; // E.g. "Chapter 02 // Anatomy of a Delicacy"
+  nextSectionTitle?: string;
+  currentChapter?: string;
   onProgress?: (progress: number) => void;
   className?: string;
   priority?: boolean;
@@ -26,16 +26,12 @@ export function CanvasFrameScrubber({
   frameCount = 180,
   triggerRef,
   nextSectionId,
-  nextSectionTitle,
-  currentChapter,
   onProgress,
   className = "",
   priority = false,
 }: CanvasFrameScrubberProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
-  const transitionCurtainRef = useRef<HTMLDivElement>(null);
-  const transitionBarRef = useRef<HTMLDivElement>(null);
   const [currentFrameDisplay, setCurrentFrameDisplay] = useState(1);
   const [currentTimeSec, setCurrentTimeSec] = useState(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -51,7 +47,8 @@ export function CanvasFrameScrubber({
     const trigger = triggerRef.current;
     if (!canvas || !trigger) return;
 
-    const ctx = canvas.getContext("2d", { alpha: false });
+    // Use alpha: true so canvas is never black, perfectly blending with #FAFAF8
+    const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
     let isVisible = false;
@@ -69,6 +66,8 @@ export function CanvasFrameScrubber({
 
       const cw = canvas.width;
       const ch = canvas.height;
+      if (cw === 0 || ch === 0) return;
+
       const iw = img.naturalWidth || 1280;
       const ih = img.naturalHeight || 720;
 
@@ -81,15 +80,24 @@ export function CanvasFrameScrubber({
       const cx = (cw - nw) / 2;
       const cy = (ch - nh) / 2;
 
+      // Always paint cream background first to prevent any black flashes
+      ctx.fillStyle = "#FAFAF8";
+      ctx.fillRect(0, 0, cw, ch);
       ctx.drawImage(img, 0, 0, iw, ih, cx, cy, nw, nh);
     };
 
     const resizeCanvas = () => {
-      if (!canvas) return;
+      if (!canvas || !ctx) return;
       const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.round(rect.width * dpr);
       canvas.height = Math.round(rect.height * dpr);
+
+      // Pre-fill with warm canvas tint so unpainted areas are never black
+      ctx.fillStyle = "#FAFAF8";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       if (lastRenderedIndex >= 0 && images[lastRenderedIndex]?.complete) {
         drawImageProp(images[lastRenderedIndex]!);
@@ -99,35 +107,49 @@ export function CanvasFrameScrubber({
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    // 1. Immediately paint frame 0
+    // 1. Immediately paint frame 0 so the section is never blank or black
     const firstImg = new Image();
     firstImg.src = getFrameUrl(0);
     images[0] = firstImg;
-    firstImg.onload = () => {
+    if (firstImg.complete) {
       drawImageProp(firstImg);
       lastRenderedIndex = 0;
+    } else {
+      firstImg.onload = () => {
+        drawImageProp(firstImg);
+        lastRenderedIndex = 0;
+      };
+    }
+
+    // 2. Preload frames (Immediate for priority section, lazy near-viewport for other sections)
+    let preloaded = false;
+    const preloadFrames = () => {
+      if (preloaded) return;
+      preloaded = true;
+      for (let i = 1; i < frameCount; i++) {
+        const img = new Image();
+        img.src = getFrameUrl(i);
+        images[i] = img;
+        img.onload = () => {
+          if (lastRenderedIndex === i) {
+            drawImageProp(img);
+          }
+        };
+      }
     };
 
-    // 2. Preload ALL 180 frames into memory
-    for (let i = 0; i < frameCount; i++) {
-      if (i === 0) continue;
-      const img = new Image();
-      img.src = getFrameUrl(i);
-      images[i] = img;
-      img.onload = () => {
-        if (lastRenderedIndex === i) {
-          drawImageProp(img);
-        }
-      };
+    if (priority) {
+      preloadFrames();
     }
 
     // 3. Render target frame
     const renderFrame = (index: number) => {
       const targetIdx = Math.min(frameCount - 1, Math.max(0, Math.round(index)));
-      if (targetIdx === lastRenderedIndex) return;
+      if (targetIdx === lastRenderedIndex && lastRenderedIndex >= 0) return;
 
       let imgToDraw = images[targetIdx];
       if (!imgToDraw || !imgToDraw.complete) {
+        // Fallback to nearest completed frame rather than showing blank/black
         for (let b = targetIdx - 1; b >= 0; b--) {
           if (images[b]?.complete) {
             imgToDraw = images[b];
@@ -146,7 +168,18 @@ export function CanvasFrameScrubber({
 
     renderFrameRef.current = renderFrame;
 
-    // 4. Intersection Observer
+    // 4. Preload Observer: starts loading frames 800px before scrolling into section
+    const nearObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          preloadFrames();
+        }
+      },
+      { rootMargin: "800px" }
+    );
+    nearObserver.observe(trigger);
+
+    // 5. Active Visibility Observer
     const observer = new IntersectionObserver(
       (entries) => {
         isVisible = entries[0].isIntersecting;
@@ -158,59 +191,31 @@ export function CanvasFrameScrubber({
     );
     observer.observe(trigger);
 
-    // 5. GSAP ScrollTrigger - Smooth 60fps scrub with Inter-Video Transitions
+    // 6. GSAP ScrollTrigger - Smooth 60fps scrub
     const st = ScrollTrigger.create({
       trigger: trigger,
       start: "top top",
       end: "bottom bottom",
-      scrub: 0.6, // Smooth 60fps interpolation without sudden jump
+      scrub: 0.5,
       onUpdate: (self) => {
         if (!isVisible || isPlayingRef.current) return;
 
         const progress = Math.max(0, Math.min(1, self.progress));
 
-        // Smoothly map 0.04 -> 0.86 to video frames (180 frames)
+        // Map scroll 0.02 -> 0.98 evenly to frames
         let videoProgress = 0;
-        if (progress <= 0.04) {
+        if (progress <= 0.02) {
           videoProgress = 0;
-        } else if (progress >= 0.86) {
+        } else if (progress >= 0.98) {
           videoProgress = 1;
         } else {
-          videoProgress = (progress - 0.04) / (0.86 - 0.04);
+          videoProgress = (progress - 0.02) / (0.98 - 0.02);
         }
         const frameIdx = Math.min(frameCount - 1, Math.floor(videoProgress * (frameCount - 1)));
 
-        // 60FPS Hardware-accelerated canvas scale & opacity crossfade
+        // Keep opacity solid 1.0 (no black/dimming artifact)
         if (canvasWrapperRef.current) {
-          let scale = 1.0;
-          let opacity = 1.0;
-          if (progress < 0.08) {
-            const enterRatio = progress / 0.08;
-            scale = 0.95 + 0.05 * enterRatio;
-            opacity = 0.25 + 0.75 * enterRatio;
-          } else if (progress > 0.84) {
-            const exitRatio = (progress - 0.84) / 0.16;
-            scale = 1.0 + 0.05 * exitRatio;
-            opacity = 1.0 - 0.65 * exitRatio;
-          }
-          canvasWrapperRef.current.style.transform = `scale(${scale.toFixed(4)})`;
-          canvasWrapperRef.current.style.opacity = opacity.toFixed(3);
-        }
-
-        // Luxury Chapter Transition Curtain
-        if (transitionCurtainRef.current) {
-          if (progress > 0.82) {
-            const curtainProgress = (progress - 0.82) / 0.16; // 0 to 1
-            transitionCurtainRef.current.style.opacity = String(Math.min(1, curtainProgress * 1.35));
-            if (transitionBarRef.current) {
-              transitionBarRef.current.style.width = `${Math.min(100, Math.round(curtainProgress * 100))}%`;
-            }
-          } else if (progress < 0.06) {
-            const enterCurtain = (0.06 - progress) / 0.06;
-            transitionCurtainRef.current.style.opacity = String(Math.min(1, enterCurtain * 0.7));
-          } else {
-            transitionCurtainRef.current.style.opacity = "0";
-          }
+          canvasWrapperRef.current.style.opacity = "1";
         }
 
         setIsScrubbing(true);
@@ -230,6 +235,7 @@ export function CanvasFrameScrubber({
     return () => {
       clearTimeout(scrubTimeout);
       st.kill();
+      nearObserver.disconnect();
       observer.disconnect();
       window.removeEventListener("resize", resizeCanvas);
       if (autoPlayAnimId.current) {
@@ -238,7 +244,7 @@ export function CanvasFrameScrubber({
     };
   }, [triggerRef, videoId, frameCount, onProgress, priority]);
 
-  // Auto-play the full 10-second sequence (180 frames @ 18fps) then scroll to next
+  // Auto-play the full 10-second sequence (180 frames @ 18fps) then smoothly scroll to next
   const startAutoPlay = () => {
     setIsPlayingAuto(true);
     isPlayingRef.current = true;
@@ -259,24 +265,10 @@ export function CanvasFrameScrubber({
         onProgress(progress);
       }
 
-      // Animate transition curtain near conclusion of 10s playback
-      if (transitionCurtainRef.current) {
-        if (progress > 0.85) {
-          const curtainProg = (progress - 0.85) / 0.15;
-          transitionCurtainRef.current.style.opacity = String(Math.min(1, curtainProg * 1.35));
-          if (transitionBarRef.current) {
-            transitionBarRef.current.style.width = `${Math.min(100, Math.round(curtainProg * 100))}%`;
-          }
-        } else {
-          transitionCurtainRef.current.style.opacity = "0";
-        }
-      }
-
       if (progress < 1 && isPlayingRef.current) {
         autoPlayAnimId.current = requestAnimationFrame(step);
       } else {
         stopAutoPlay();
-        // 10 seconds complete: smoothly advance to the next section!
         if (nextSectionId) {
           setTimeout(() => {
             const nextEl = document.getElementById(nextSectionId);
@@ -311,10 +303,10 @@ export function CanvasFrameScrubber({
 
   return (
     <div className={`relative w-full h-full overflow-hidden bg-[#FAFAF8] ${className}`}>
-      {/* 60FPS Apple-Grade HTML5 Canvas with Hardware Scaled Crossfade */}
+      {/* 60FPS Apple-Grade HTML5 Canvas */}
       <div
         ref={canvasWrapperRef}
-        className="w-full h-full will-change-transform origin-center transition-[transform,opacity] duration-75"
+        className="w-full h-full will-change-transform origin-center"
       >
         <canvas
           ref={canvasRef}
@@ -330,50 +322,17 @@ export function CanvasFrameScrubber({
         className="pointer-events-none absolute inset-0 z-20"
         style={{
           background:
-            "radial-gradient(ellipse at center, transparent 65%, rgba(250, 250, 248, 0.45) 88%, rgba(250, 250, 248, 0.95) 100%)",
+            "radial-gradient(ellipse at center, transparent 70%, rgba(250, 250, 248, 0.4) 90%, rgba(250, 250, 248, 0.95) 100%)",
         }}
       />
 
-      {/* Luxury Editorial Chapter Transition Veil (Smooth handoff between videos) */}
-      <div
-        ref={transitionCurtainRef}
-        className="pointer-events-none absolute inset-0 z-25 flex flex-col items-center justify-center opacity-0 transition-opacity duration-200"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, rgba(250, 250, 248, 0.8) 0%, rgba(250, 250, 248, 0.97) 80%, #FAFAF8 100%)",
-        }}
-      >
-        <div className="text-center px-6 max-w-md space-y-3">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-[rgba(43,35,32,0.14)] bg-[#FAFAF8]/95 font-mono text-[9px] uppercase tracking-widest text-[#C27838] shadow-xs">
-            <Sparkles className="w-3 h-3 text-[#C27838]" />
-            <span>{currentChapter ? `${currentChapter} Concluded` : "Experience Complete"}</span>
-          </div>
-          {nextSectionTitle && (
-            <div>
-              <div className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#574B46] mb-1">
-                Entering Next Experience
-              </div>
-              <h3 className="font-serif text-2xl md:text-3xl text-[#2B2320]">
-                {nextSectionTitle}
-              </h3>
-            </div>
-          )}
-          <div className="w-40 h-[2px] mx-auto bg-[rgba(43,35,32,0.12)] rounded-full overflow-hidden">
-            <div
-              ref={transitionBarRef}
-              className="h-full bg-[#C27838] w-0 transition-all duration-75"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Frame Status Micro-Badge & 10s Play Controller */}
-      <div className="absolute bottom-6 left-6 z-30 flex items-center space-x-3">
+      {/* Frame Status Micro-Badge & 10s Play Controller (Positioned unobtrusively above bottom bar) */}
+      <div className="absolute bottom-20 left-6 z-30 flex items-center space-x-3 pointer-events-auto">
         {/* Play 10s Cinematic Sequence Button */}
         <button
           onClick={toggleAutoPlay}
           data-cursor={isPlayingAuto ? "PAUSE" : "PLAY 10S"}
-          className="flex items-center space-x-2 bg-[#2B2320] text-[#FAFAF8] px-3.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest hover:bg-[#574B46] transition-all shadow-md group"
+          className="flex items-center space-x-2 bg-[#2B2320] text-[#FAFAF8] px-3.5 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-widest hover:bg-[#574B46] transition-all shadow-md group cursor-pointer"
         >
           {isPlayingAuto ? (
             <>
@@ -404,19 +363,6 @@ export function CanvasFrameScrubber({
           </span>
         </div>
       </div>
-
-      {/* Auto Next Indicator if nextSectionId present */}
-      {nextSectionId && (
-        <button
-          onClick={() => {
-            document.getElementById(nextSectionId)?.scrollIntoView({ behavior: "smooth" });
-          }}
-          className="absolute bottom-6 right-6 z-30 hidden md:flex items-center space-x-1.5 bg-[#FAFAF8]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[rgba(43,35,32,0.1)] text-[9px] font-mono text-[#574B46] hover:text-[#2B2320] transition-colors shadow-xs"
-        >
-          <span>NEXT SECTION</span>
-          <ChevronDown className="w-3 h-3" />
-        </button>
-      )}
     </div>
   );
 }
