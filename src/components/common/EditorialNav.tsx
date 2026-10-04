@@ -107,52 +107,46 @@ export function EditorialNav() {
             01 Thali
           </button>
           <button
-            onClick={() => scrollTo("section-heritage")}
-            className="hover:text-[#2B2320] transition-colors relative py-1"
-          >
-            02 Heritage
-          </button>
-          <button
             onClick={() => scrollTo("section-samosa")}
             className="hover:text-[#2B2320] transition-colors relative py-1"
           >
-            03 Samosa
+            02 Samosa
           </button>
           <button
             onClick={() => scrollTo("section-spices")}
             className="hover:text-[#2B2320] transition-colors relative py-1"
           >
-            04 Spices
+            03 Spices
           </button>
           <button
             onClick={() => scrollTo("section-craft")}
             className="hover:text-[#2B2320] transition-colors relative py-1"
           >
-            05 Blueprint
+            04 Blueprint
           </button>
           <button
             onClick={() => scrollTo("section-sauces")}
             className="hover:text-[#2B2320] transition-colors relative py-1"
           >
-            06 Chutneys
+            05 Chutneys
           </button>
           <button
             onClick={() => scrollTo("section-dining")}
             className="hover:text-[#2B2320] transition-colors relative py-1"
           >
-            07 Atelier
+            06 Atelier
           </button>
           <button
             onClick={() => scrollTo("section-cafe-menu")}
             className="hover:text-[#2B2320] transition-colors relative py-1 font-semibold text-[#2B2320]"
           >
-            08 Menu
+            07 Menu
           </button>
           <button
             onClick={() => scrollTo("section-visit")}
             className="hover:text-[#2B2320] transition-colors relative py-1"
           >
-            09 Hours
+            08 Hours
           </button>
         </nav>
 

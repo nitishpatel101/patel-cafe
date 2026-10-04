@@ -9,7 +9,6 @@ import { EditorialLoader } from "@/components/common/EditorialLoader";
 import { EditorialFooter } from "@/components/common/EditorialFooter";
 import { TastingOrderDrawer } from "@/components/common/TastingOrderDrawer";
 import { HeroSection } from "@/components/sections/HeroSection";
-import { EditorialStorySection } from "@/components/sections/EditorialStorySection";
 import { ExplodedSamosaSection } from "@/components/sections/ExplodedSamosaSection";
 import { IngredientsSection } from "@/components/sections/IngredientsSection";
 import { CraftProcessSection } from "@/components/sections/CraftProcessSection";
@@ -50,10 +49,7 @@ export default function Home() {
             {/* Section 01: Hero (Exploded Royal Thali, Video 1) */}
             <HeroSection />
 
-            {/* Section 02: Editorial Story (Royal Khansama Philosophy, Image 1) */}
-            <EditorialStorySection />
-
-            {/* Section 03: Exploded Samosa (Anatomy of a Delicacy, Video 2) */}
+            {/* Section 02: Exploded Samosa (Anatomy of a Delicacy, Video 2) */}
             <ExplodedSamosaSection />
 
             {/* Section 04: The Spice Constellation (Botanical Physics, Video 3) */}

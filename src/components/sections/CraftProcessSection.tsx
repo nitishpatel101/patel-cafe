@@ -57,8 +57,8 @@ export function CraftProcessSection() {
             frameCount={180}
             triggerRef={containerRef}
             nextSectionId="section-sauces"
-            currentChapter="Chapter 04 // The Craft Assembly"
-            nextSectionTitle="Chapter 05 // Fluid Dynamics & Sauces"
+            currentChapter="The Craft Assembly"
+            nextSectionTitle="Fluid Dynamics & Sauces"
             onProgress={setScrollProgress}
           />
         </div>
@@ -71,7 +71,7 @@ export function CraftProcessSection() {
           <div className="flex items-center justify-between border-b border-[rgba(43,35,32,0.06)] pb-4 mb-6">
             <div>
               <div className="font-mono text-xs tracking-[0.25em] text-[#C27838] uppercase font-semibold">
-                05 // ENGINEERING BLUEPRINT
+                04 // ENGINEERING BLUEPRINT
               </div>
               <h2 className="font-serif text-2xl md:text-4xl text-[#2B2320] tracking-tight mt-1">
                 The Assembly Timeline

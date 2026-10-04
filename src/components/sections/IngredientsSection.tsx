@@ -81,8 +81,8 @@ export function IngredientsSection() {
             frameCount={180}
             triggerRef={containerRef}
             nextSectionId="section-craft"
-            currentChapter="Chapter 03 // Botanical Physics"
-            nextSectionTitle="Chapter 04 // Dum Pukht Assembly Craft"
+            currentChapter="Botanical Physics"
+            nextSectionTitle="Dum Pukht Assembly Craft"
             onProgress={setScrollProgress}
           />
         </div>
@@ -94,7 +94,7 @@ export function IngredientsSection() {
         <div className="relative z-30 pt-24 px-6 md:px-16 flex items-center justify-between border-b border-[rgba(43,35,32,0.06)] pb-4">
           <div>
             <div className="font-mono text-xs tracking-[0.25em] text-[#C27838] uppercase font-semibold">
-              04 // BOTANICAL PHYSICS
+              03 // BOTANICAL PHYSICS
             </div>
             <h2 className="font-serif text-2xl md:text-4xl text-[#2B2320] tracking-tight mt-1">
               The Spice Constellation

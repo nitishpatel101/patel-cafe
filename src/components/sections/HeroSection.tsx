@@ -34,9 +34,9 @@ export function HeroSection() {
             videoId="video-1"
             frameCount={180}
             triggerRef={containerRef}
-            nextSectionId="section-heritage"
-            currentChapter="Chapter 01 // The Royal Thali"
-            nextSectionTitle="Chapter 02 // Philosophy & Heritage"
+            nextSectionId="section-samosa"
+            currentChapter="The Royal Thali"
+            nextSectionTitle="Anatomy of a Samosa"
             onProgress={setScrollProgress}
             priority={true}
           />

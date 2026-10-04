@@ -37,8 +37,8 @@ export function SaucesSection() {
             frameCount={180}
             triggerRef={containerRef}
             nextSectionId="section-dining"
-            currentChapter="Chapter 05 // Signature Sauces"
-            nextSectionTitle="Chapter 06 // The Grand Atelier Dining"
+            currentChapter="Signature Sauces"
+            nextSectionTitle="The Grand Atelier Dining"
             onProgress={setScrollProgress}
           />
         </div>
@@ -50,7 +50,7 @@ export function SaucesSection() {
         <div className="relative z-30 pt-24 px-6 md:px-16 flex items-center justify-between border-b border-[rgba(43,35,32,0.06)] pb-4">
           <div>
             <div className="font-mono text-xs tracking-[0.25em] text-[#C27838] uppercase font-semibold">
-              06 // FLUID DYNAMICS
+              05 // FLUID DYNAMICS
             </div>
             <h2 className="font-serif text-2xl md:text-4xl text-[#2B2320] tracking-tight mt-1">
               The Chutney Pour

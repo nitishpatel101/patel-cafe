@@ -346,12 +346,12 @@ export function CanvasFrameScrubber({
         <div className="text-center px-6 max-w-md space-y-3">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-[rgba(43,35,32,0.14)] bg-[#FAFAF8]/95 font-mono text-[9px] uppercase tracking-widest text-[#C27838] shadow-xs">
             <Sparkles className="w-3 h-3 text-[#C27838]" />
-            <span>{currentChapter ? `${currentChapter} Concluded` : "Chapter Complete"}</span>
+            <span>{currentChapter ? `${currentChapter} Concluded` : "Experience Complete"}</span>
           </div>
           {nextSectionTitle && (
             <div>
               <div className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#574B46] mb-1">
-                Entering Next Chapter
+                Entering Next Experience
               </div>
               <h3 className="font-serif text-2xl md:text-3xl text-[#2B2320]">
                 {nextSectionTitle}
@@ -413,7 +413,7 @@ export function CanvasFrameScrubber({
           }}
           className="absolute bottom-6 right-6 z-30 hidden md:flex items-center space-x-1.5 bg-[#FAFAF8]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[rgba(43,35,32,0.1)] text-[9px] font-mono text-[#574B46] hover:text-[#2B2320] transition-colors shadow-xs"
         >
-          <span>NEXT CHAPTER</span>
+          <span>NEXT SECTION</span>
           <ChevronDown className="w-3 h-3" />
         </button>
       )}
