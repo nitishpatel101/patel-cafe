@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { VideoScrubber } from "../motion/VideoScrubber";
+import { CanvasFrameScrubber } from "../motion/CanvasFrameScrubber";
 import { FloatingSpiceCanvas } from "../three/FloatingSpiceCanvas";
 import { MagneticButton } from "../common/MagneticButton";
 import { ArrowDown, Sparkles } from "lucide-react";
@@ -28,11 +28,11 @@ export function HeroSection() {
     >
       {/* Sticky Fullscreen Scrubber Viewport */}
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
-        {/* Background Scrubbed Video (Hero Exploded Royal Thali) */}
+        {/* Background Scrubbed Frame Sequence (Hero Exploded Royal Thali) */}
         <div className="absolute inset-0 z-0">
-          <VideoScrubber
-            src="/videos/video-1.mp4"
-            posterSrc="/images/image-1.webp"
+          <CanvasFrameScrubber
+            videoId="video-1"
+            frameCount={180}
             triggerRef={containerRef}
             onProgress={setScrollProgress}
             priority={true}

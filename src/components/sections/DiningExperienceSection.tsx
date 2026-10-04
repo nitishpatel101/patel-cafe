@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import Image from "next/image";
-import { VideoScrubber } from "../motion/VideoScrubber";
+import { CanvasFrameScrubber } from "../motion/CanvasFrameScrubber";
 import { FloatingSpiceCanvas } from "../three/FloatingSpiceCanvas";
 
 export function DiningExperienceSection() {
@@ -16,11 +16,11 @@ export function DiningExperienceSection() {
       className="relative w-full h-[220vh] bg-[#FAFAF8]"
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
-        {/* Background Scrubbed Video (Video 6 - Dining Table Materialization) */}
+        {/* Background Scrubbed Frame Sequence (Video 6 - Dining Table Materialization) */}
         <div className="absolute inset-0 z-0">
-          <VideoScrubber
-            src="/videos/video-6.mp4"
-            posterSrc="/images/image-4.webp"
+          <CanvasFrameScrubber
+            videoId="video-6"
+            frameCount={180}
             triggerRef={containerRef}
             onProgress={setScrollProgress}
           />

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { VideoScrubber } from "../motion/VideoScrubber";
+import { CanvasFrameScrubber } from "../motion/CanvasFrameScrubber";
 import { FloatingSpiceCanvas } from "../three/FloatingSpiceCanvas";
 
 export function SaucesSection() {
@@ -30,11 +30,11 @@ export function SaucesSection() {
       className="relative w-full h-[220vh] bg-[#FAFAF8]"
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
-        {/* Background Scrubbed Video (Video 5 - Pouring Chutney ribbons) */}
+        {/* Background Scrubbed Frame Sequence (Video 5 - Pouring Chutney ribbons) */}
         <div className="absolute inset-0 z-0">
-          <VideoScrubber
-            src="/videos/video-5.mp4"
-            posterSrc="/images/image-1.webp"
+          <CanvasFrameScrubber
+            videoId="video-5"
+            frameCount={180}
             triggerRef={containerRef}
             onProgress={setScrollProgress}
           />

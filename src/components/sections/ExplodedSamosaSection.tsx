@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { VideoScrubber } from "../motion/VideoScrubber";
+import { CanvasFrameScrubber } from "../motion/CanvasFrameScrubber";
 import { FloatingSpiceCanvas } from "../three/FloatingSpiceCanvas";
 
 export function ExplodedSamosaSection() {
@@ -83,11 +83,11 @@ export function ExplodedSamosaSection() {
       className="relative w-full h-[220vh] bg-[#FAFAF8]"
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col justify-between">
-        {/* Background Scrubbed Video (Video 2 - Exploded Samosa) */}
+        {/* Background Scrubbed Frame Sequence (Video 2 - Exploded Samosa) */}
         <div className="absolute inset-0 z-0">
-          <VideoScrubber
-            src="/videos/video-2.mp4"
-            posterSrc="/images/image-2.webp"
+          <CanvasFrameScrubber
+            videoId="video-2"
+            frameCount={180}
             triggerRef={containerRef}
             onProgress={setScrollProgress}
           />
